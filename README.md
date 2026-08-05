@@ -48,11 +48,10 @@ Exposes authenticated JSON endpoints under `/api/*` for programmatic access to t
 
 ```mermaid
 erDiagram
-    USER ||--o{ TREK : "assigned to (Staff)"
-    USER ||--o{ BOOKING : "makes (Trekker)"
-    USER ||--o{ REVIEW : "writes (Trekker)"
+    USER ||--o{ TREK : "assigns"
+    USER ||--o{ BOOKING : "makes"
+    USER ||--o{ REVIEW : "writes"
     USER ||--o{ ACTIVITY_LOG : "triggers"
-    
     TREK ||--o{ BOOKING : "has"
     TREK ||--o{ REVIEW : "has"
 
@@ -61,7 +60,7 @@ erDiagram
         string name
         string email
         string password_hash
-        string role "admin, staff, trekker"
+        string role
         boolean is_blacklisted
         string approval_status
     }
@@ -79,12 +78,12 @@ erDiagram
         int id PK
         int user_id FK
         int trek_id FK
-        string status "Booked, Waitlisted, Cancelled"
+        string status
         int waitlist_position
     }
     REVIEW {
         int id PK
-        int rating "1-5"
+        int rating
         string comment
     }
     ACTIVITY_LOG {
