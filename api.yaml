@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: Trekking Management App API
+  version: "1.0"
+  description: >
+    Read-only REST endpoints for treks, users, and bookings.
+    User/booking endpoints require an authenticated session cookie
+    (log in via /login first); the users endpoint additionally
+    requires the admin role.
+servers:
+  - url: http://127.0.0.1:5000
+paths:
+  /api/treks:
+    get:
+      summary: List all active treks
+      responses:
+        "200":
+          description: Array of trek objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trek"
+  /api/treks/{trek_id}:
+    get:
+      summary: Get a single trek by ID
+      parameters:
+        - in: path
+          name: trek_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trek object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trek"
+        "404":
+          description: Trek not found
+  /api/users:
+    get:
+      summary: List all users (admin only)
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Array of user objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          description: Not logged in
+        "403":
+          description: Logged in but not an admin
+  /api/bookings:
+    get:
+      summary: >
+        List bookings. Admins see every booking; other roles see only
+        their own.
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Array of booking objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        "401":
+          description: Not logged in
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: session
+  schemas:
+    Trek:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        location: { type: string }
+        difficulty: { type: string, enum: [Easy, Moderate, Hard] }
+        duration_days: { type: integer }
+        total_slots: { type: integer }
+        available_slots: { type: integer }
+        status: { type: string, enum: [Closed, Open, Started, Completed] }
+        assigned_staff_id: { type: integer, nullable: true }
+        start_date: { type: string, format: date, nullable: true }
+        end_date: { type: string, format: date, nullable: true }
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [admin, staff, trekker] }
+        is_blacklisted: { type: boolean }
+        approval_status: { type: string, enum: [Pending, Approved, Rejected] }
+    Booking:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        trek_id: { type: integer }
+        status: { type: string, enum: [Booked, Waitlisted, Cancelled, Completed] }
+        booking_date: { type: string, format: date-time }
