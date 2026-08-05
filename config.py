@@ -6,7 +6,7 @@ os.makedirs(INSTANCE_DIR, exist_ok=True)
 
 class Config:
     SECRET_KEY=os.environ.get("SECRET_KEY", "dev12345")
-    SQLALCHEMY_DATABSE_URI="sqlite:///"+os.path.join(INSTANCE_DIR, "trekking.db")
+    SQLALCHEMY_DATABASE_URI="sqlite:///"+os.path.join(INSTANCE_DIR, "trekking.db")
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 
     ITEMS_PER_PAGE=10
