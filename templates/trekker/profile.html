@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<h2 class="mb-4">My Profile</h2>
+
+<form method="POST" class="row g-3" style="max-width: 480px;">
+  <div class="col-12">
+    <label class="form-label">Full name</label>
+    <input type="text" name="name" class="form-control" required value="{{ current_user.name }}">
+  </div>
+  <div class="col-12">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+    <div class="form-text">Email can't be changed here.</div>
+  </div>
+  <div class="col-12">
+    <label class="form-label">Contact number</label>
+    <input type="text" name="contact" class="form-control" value="{{ current_user.contact or '' }}"
+           pattern="[0-9+\-\s]{7,15}">
+  </div>
+  <div class="col-12">
+    <label class="form-label">New password</label>
+    <input type="password" name="password" class="form-control" minlength="4" placeholder="Leave blank to keep current password">
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">Save changes</button>
+  </div>
+</form>
+{% endblock %}

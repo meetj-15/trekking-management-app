@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ trek.name }} — Manage{% endblock %}
+{% block content %}
+<h2 class="mb-1">{{ trek.name }}</h2>
+<p class="text-muted">{{ trek.location }} · {{ trek.difficulty }} · {{ trek.duration_days }} day(s)</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Available Slots</h5>
+        <form method="POST" action="{{ url_for('staff.update_slots', trek_id=trek.id) }}" class="d-flex gap-2">
+          <input type="number" name="available_slots" class="form-control" min="0" max="{{ trek.total_slots }}"
+                 value="{{ trek.available_slots }}" required>
+          <button class="btn btn-primary">Update</button>
+        </form>
+        <div class="form-text">Total capacity: {{ trek.total_slots }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Trek Status: <span class="badge bg-secondary">{{ trek.status }}</span></h5>
+        <form method="POST" action="{{ url_for('staff.update_status', trek_id=trek.id) }}" class="d-flex gap-2 flex-wrap">
+          {% set transitions = {
+              'Closed': ['Open'],
+              'Open': ['Closed', 'Started'],
+              'Started': ['Completed'],
+              'Completed': []
+          } %}
+          {% for next_status in transitions[trek.status] %}
+            <button type="submit" name="status" value="{{ next_status }}" class="btn btn-outline-primary btn-sm">
+              Mark as {{ next_status }}
+            </button>
+          {% else %}
+            <span class="text-muted">No further transitions.</span>
+          {% endfor %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h4>Participants ({{ participants|length }})</h4>
+<div class="table-responsive mb-4">
+<table class="table table-striped">
+  <thead><tr><th>Name</th><th>Email</th><th>Booked On</th><th>Status</th></tr></thead>
+  <tbody>
+    {% for b in participants %}
+    <tr><td>{{ b.user.name }}</td><td>{{ b.user.email }}</td>
+        <td>{{ b.booking_date.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ b.status }}</td></tr>
+    {% else %}
+    <tr><td colspan="4" class="text-center text-muted">No participants yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h4>Waitlist ({{ waitlisted|length }})</h4>
+<div class="table-responsive">
+<table class="table table-striped">
+  <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Waiting Since</th></tr></thead>
+  <tbody>
+    {% for b in waitlisted %}
+    <tr><td>{{ b.waitlist_position }}</td><td>{{ b.user.name }}</td><td>{{ b.user.email }}</td>
+        <td>{{ b.booking_date.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+    {% else %}
+    <tr><td colspan="4" class="text-center text-muted">No one on the waitlist.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

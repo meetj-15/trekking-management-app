@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}TrekManager — Home{% endblock %}
+{% block content %}
+<div class="p-5 mb-4 bg-light rounded-3 text-center">
+  <h1 class="display-5 fw-bold">Trekking Management</h1>
+  <p class="col-lg-8 mx-auto fs-5">
+    Browse open treks, book a slot, and track your trekking history — or manage
+    treks and staff if you're an admin.
+  </p>
+  {% if not current_user.is_authenticated %}
+    <a class="btn btn-primary btn-lg me-2" href="{{ url_for('auth.login') }}">Login</a>
+    <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('auth.register') }}">Register</a>
+  {% else %}
+    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.post_login_redirect') }}">Go to my dashboard</a>
+  {% endif %}
+</div>
+{% endblock %}

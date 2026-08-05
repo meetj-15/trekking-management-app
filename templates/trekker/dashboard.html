@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Browse Treks{% endblock %}
+{% block content %}
+<h2 class="mb-3">Browse Open Treks</h2>
+
+<form method="GET" class="row g-2 mb-4">
+  <div class="col-sm-4">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by name">
+  </div>
+  <div class="col-sm-4">
+    <input type="text" name="location" value="{{ location }}" class="form-control" placeholder="Location">
+  </div>
+  <div class="col-sm-3">
+    <select name="difficulty" class="form-select">
+      <option value="">Any difficulty</option>
+      {% for d in ['Easy', 'Moderate', 'Hard'] %}
+        <option value="{{ d }}" {% if difficulty == d %}selected{% endif %}>{{ d }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-sm-1">
+    <button class="btn btn-outline-secondary w-100" type="submit">Go</button>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for trek in treks %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">{{ trek.name }}</h5>
+        <p class="text-muted mb-1">{{ trek.location }} · {{ trek.difficulty }} · {{ trek.duration_days }} day(s)</p>
+        {% if trek.average_rating %}
+          <p class="mb-1">⭐ {{ trek.average_rating }} / 5</p>
+        {% endif %}
+        <p class="mb-2">
+          {% if trek.available_slots > 0 %}
+            <span class="badge bg-success">{{ trek.available_slots }} slots left</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Full — waitlist open</span>
+          {% endif %}
+        </p>
+        <div class="mt-auto">
+          {% if trek.id in my_active_trek_ids %}
+            <button class="btn btn-secondary btn-sm w-100" disabled>Already booked / waitlisted</button>
+          {% else %}
+            <form method="POST" action="{{ url_for('trekker.book_trek', trek_id=trek.id) }}">
+              <button class="btn btn-primary btn-sm w-100">
+                {{ 'Book now' if trek.available_slots > 0 else 'Join waitlist' }}
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted">No open treks match your search right now.</p>
+  {% endfor %}
+</div>
+
+<div class="mt-4">
+{{ render_pagination(pagination, 'trekker.dashboard', {'q': q, 'location': location, 'difficulty': difficulty}) }}
+</div>
+{% endblock %}

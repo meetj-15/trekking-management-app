@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Staff Approvals{% endblock %}
+{% block content %}
+<h2 class="mb-4">Pending Staff Registrations</h2>
+
+{% if pending %}
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead><tr><th>Name</th><th>Email</th><th>Contact</th><th>Registered</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for s in pending %}
+    <tr>
+      <td>{{ s.name }}</td>
+      <td>{{ s.email }}</td>
+      <td>{{ s.contact or '—' }}</td>
+      <td>{{ s.created_at.strftime('%Y-%m-%d') }}</td>
+      <td class="text-nowrap">
+        <form method="POST" action="{{ url_for('admin.approve_staff', user_id=s.id) }}" class="d-inline">
+          <button class="btn btn-sm btn-success">Approve</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.reject_staff', user_id=s.id) }}" class="d-inline">
+          <button class="btn btn-sm btn-outline-danger">Reject</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="text-muted">No pending staff registrations.</p>
+{% endif %}
+{% endblock %}

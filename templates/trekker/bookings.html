@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}My Bookings{% endblock %}
+{% block content %}
+<h2 class="mb-3">My Booking History</h2>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead><tr><th>Trek</th><th>Booked On</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for b in bookings %}
+    <tr>
+      <td>{{ b.trek.name }}</td>
+      <td>{{ b.booking_date.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>
+        <span class="badge bg-{{ {'Booked': 'success', 'Waitlisted': 'warning', 'Cancelled': 'secondary', 'Completed': 'info'}[b.status] }}">
+          {{ b.status }}{% if b.status == 'Waitlisted' %} (#{{ b.waitlist_position }}){% endif %}
+        </span>
+      </td>
+      <td class="text-nowrap">
+        {% if b.status in ['Booked', 'Waitlisted'] %}
+          <form method="POST" action="{{ url_for('trekker.cancel_booking', booking_id=b.id) }}" class="d-inline"
+                onsubmit="return confirm('Cancel this booking?');">
+            <button class="btn btn-sm btn-outline-danger">Cancel</button>
+          </form>
+        {% elif b.status == 'Completed' and b.trek_id not in reviewed_trek_ids %}
+          <button class="btn btn-sm btn-outline-primary" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#review-{{ b.id }}">
+            Leave a review
+          </button>
+        {% elif b.status == 'Completed' %}
+          <span class="text-muted small">Reviewed ✓</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% if b.status == 'Completed' and b.trek_id not in reviewed_trek_ids %}
+    <tr class="collapse" id="review-{{ b.id }}">
+      <td colspan="4">
+        <form method="POST" action="{{ url_for('trekker.add_review', trek_id=b.trek_id) }}" class="row g-2 align-items-center">
+          <div class="col-auto">
+            <select name="rating" class="form-select form-select-sm" required>
+              {% for i in [5, 4, 3, 2, 1] %}<option value="{{ i }}">{{ i }} star{{ 's' if i > 1 else '' }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col">
+            <input type="text" name="comment" class="form-control form-control-sm" placeholder="Optional comment" maxlength="500">
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-sm btn-primary">Submit review</button>
+          </div>
+        </form>
+      </td>
+    </tr>
+    {% endif %}
+    {% else %}
+    <tr><td colspan="4" class="text-center text-muted">You haven't booked any treks yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{{ render_pagination(pagination, 'trekker.my_bookings') }}
+{% endblock %}
