@@ -3,6 +3,7 @@ from flask_login import current_user
 from config import Config
 from extensions import db, login_manager
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -37,7 +38,7 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     @app.context_processor
     def inject_user():
@@ -49,16 +50,19 @@ def create_app():
 
     return app
 
+
 def _seed_admin():
     """Create the single seeded Admin account if it doesn't exist yet.
     Admin never self-registers, per the project rules."""
     from models import User, ROLE_ADMIN
+
     if User.query.filter_by(role=ROLE_ADMIN).first() is None:
         admin = User(name="System Admin", email="admin@trek.com", role=ROLE_ADMIN)
         admin.set_password("admin123")
         db.session.add(admin)
         db.session.commit()
         print("Seeded default admin login -> admin@trek.com / admin123")
+
 
 app = create_app()
 

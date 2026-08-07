@@ -18,9 +18,11 @@
           <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>
         <hr>
+        {% if config.DEBUG %}
         <p class="text-muted small mb-0">
-          Seeded admin login: <code>admin@trek.com</code> / <code>admin123</code>
+          Dev admin login: <code>admin@trek.com</code> / <code>admin123</code>
         </p>
+        {% endif %}
         <p class="mt-2 mb-0">No account? <a href="{{ url_for('auth.register') }}">Register here</a>.</p>
       </div>
     </div>
