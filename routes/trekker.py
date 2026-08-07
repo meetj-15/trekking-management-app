@@ -3,9 +3,14 @@ from flask_login import login_required, current_user
 from sqlalchemy import update
 from extensions import db
 from models import (
-    Trek, Booking, Review,
+    Trek,
+    Booking,
+    Review,
     TREK_STATUS_OPEN,
-    BOOKING_STATUS_BOOKED, BOOKING_STATUS_WAITLISTED, BOOKING_STATUS_CANCELLED, BOOKING_STATUS_COMPLETED,
+    BOOKING_STATUS_BOOKED,
+    BOOKING_STATUS_WAITLISTED,
+    BOOKING_STATUS_CANCELLED,
+    BOOKING_STATUS_COMPLETED,
 )
 from decorators import trekker_required
 from utils import log_activity
@@ -30,7 +35,9 @@ def dashboard():
     if difficulty:
         query = query.filter_by(difficulty=difficulty)
 
-    pagination = query.order_by(Trek.created_at.desc()).paginate(page=page, per_page=9, error_out=False)
+    pagination = query.order_by(Trek.created_at.desc()).paginate(
+        page=page, per_page=9, error_out=False
+    )
 
     my_active_trek_ids = {
         b.trek_id
@@ -41,8 +48,11 @@ def dashboard():
 
     return render_template(
         "trekker/dashboard.html",
-        pagination=pagination, treks=pagination.items,
-        q=q, location=location, difficulty=difficulty,
+        pagination=pagination,
+        treks=pagination.items,
+        q=q,
+        location=location,
+        difficulty=difficulty,
         my_active_trek_ids=my_active_trek_ids,
     )
 
@@ -57,11 +67,16 @@ def book_trek(trek_id):
         flash("This trek isn't open for booking right now.", "danger")
         return redirect(url_for("trekker.dashboard"))
 
-    already = Booking.query.filter_by(user_id=current_user.id, trek_id=trek.id).filter(
-        Booking.status.in_([BOOKING_STATUS_BOOKED, BOOKING_STATUS_WAITLISTED])
-    ).first()
+    already = (
+        Booking.query.filter_by(user_id=current_user.id, trek_id=trek.id)
+        .filter(Booking.status.in_([BOOKING_STATUS_BOOKED, BOOKING_STATUS_WAITLISTED]))
+        .first()
+    )
     if already:
-        flash("You already have an active booking or waitlist spot for this trek.", "warning")
+        flash(
+            "You already have an active booking or waitlist spot for this trek.",
+            "warning",
+        )
         return redirect(url_for("trekker.dashboard"))
 
     result = db.session.execute(
@@ -71,7 +86,9 @@ def book_trek(trek_id):
     )
 
     if result.rowcount == 1:
-        booking = Booking(user_id=current_user.id, trek_id=trek.id, status=BOOKING_STATUS_BOOKED)
+        booking = Booking(
+            user_id=current_user.id, trek_id=trek.id, status=BOOKING_STATUS_BOOKED
+        )
         db.session.add(booking)
         db.session.commit()
         log_activity(current_user.id, "booked trek", "Trek", trek.id)
@@ -85,28 +102,36 @@ def book_trek(trek_id):
             or 0
         )
         booking = Booking(
-            user_id=current_user.id, trek_id=trek.id,
-            status=BOOKING_STATUS_WAITLISTED, waitlist_position=last_position + 1,
+            user_id=current_user.id,
+            trek_id=trek.id,
+            status=BOOKING_STATUS_WAITLISTED,
+            waitlist_position=last_position + 1,
         )
         db.session.add(booking)
         db.session.commit()
         log_activity(current_user.id, "joined waitlist", "Trek", trek.id)
-        flash(f"{trek.name} is full — you've been waitlisted (position {last_position + 1}).", "info")
+        flash(
+            f"{trek.name} is full — you've been waitlisted (position {last_position + 1}).",
+            "info",
+        )
 
     return redirect(url_for("trekker.dashboard"))
+
 
 @trekker_bp.route("/bookings/<int:booking_id>/cancel", methods=["POST"])
 @login_required
 @trekker_required
 def cancel_booking(booking_id):
-    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first_or_404()
+    booking = Booking.query.filter_by(
+        id=booking_id, user_id=current_user.id
+    ).first_or_404()
 
     if booking.status not in (BOOKING_STATUS_BOOKED, BOOKING_STATUS_WAITLISTED):
         flash("This booking can no longer be cancelled.", "warning")
         return redirect(url_for("trekker.my_bookings"))
 
     was_booked = booking.status == BOOKING_STATUS_BOOKED
-    booking.status = BOOKING_STATUS_CANCELLED  
+    booking.status = BOOKING_STATUS_CANCELLED
     trek = booking.trek
 
     if was_booked:
@@ -128,7 +153,9 @@ def cancel_booking(booking_id):
                 next_in_line.status = BOOKING_STATUS_BOOKED
                 next_in_line.waitlist_position = None
                 db.session.commit()
-                log_activity(next_in_line.user_id, "auto-promoted from waitlist", "Trek", trek.id)
+                log_activity(
+                    next_in_line.user_id, "auto-promoted from waitlist", "Trek", trek.id
+                )
     else:
         db.session.commit()
 
@@ -147,10 +174,14 @@ def my_bookings():
         .order_by(Booking.booking_date.desc())
         .paginate(page=page, per_page=10, error_out=False)
     )
-    reviewed_trek_ids = {r.trek_id for r in Review.query.filter_by(user_id=current_user.id)}
+    reviewed_trek_ids = {
+        r.trek_id for r in Review.query.filter_by(user_id=current_user.id)
+    }
     return render_template(
         "trekker/bookings.html",
-        pagination=pagination, bookings=pagination.items, reviewed_trek_ids=reviewed_trek_ids,
+        pagination=pagination,
+        bookings=pagination.items,
+        reviewed_trek_ids=reviewed_trek_ids,
     )
 
 
@@ -175,7 +206,9 @@ def add_review(trek_id):
         flash("Rating must be between 1 and 5.", "danger")
         return redirect(url_for("trekker.my_bookings"))
 
-    db.session.add(Review(user_id=current_user.id, trek_id=trek_id, rating=rating, comment=comment))
+    db.session.add(
+        Review(user_id=current_user.id, trek_id=trek_id, rating=rating, comment=comment)
+    )
     db.session.commit()
     log_activity(current_user.id, "left a review", "Trek", trek_id)
     flash("Thanks for your review!", "success")

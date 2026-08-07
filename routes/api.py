@@ -2,7 +2,9 @@ from flask import Blueprint, jsonify
 from flask_login import login_required, current_user
 from models import Trek, User, Booking, ROLE_ADMIN
 from decorators import admin_required
+
 api_bp = Blueprint("api", __name__, url_prefix="/api")
+
 
 def trek_to_dict(t):
     return {
@@ -19,6 +21,7 @@ def trek_to_dict(t):
         "end_date": t.end_date.isoformat() if t.end_date else None,
     }
 
+
 def user_to_dict(u):
     return {
         "id": u.id,
@@ -29,6 +32,7 @@ def user_to_dict(u):
         "approval_status": u.approval_status,
     }
 
+
 def booking_to_dict(b):
     return {
         "id": b.id,
@@ -38,21 +42,25 @@ def booking_to_dict(b):
         "booking_date": b.booking_date.isoformat(),
     }
 
+
 @api_bp.route("/treks", methods=["GET"])
 def api_list_treks():
     treks = Trek.query.filter_by(is_active=True).all()
     return jsonify([trek_to_dict(t) for t in treks])
+
 
 @api_bp.route("/treks/<int:trek_id>", methods=["GET"])
 def api_get_trek(trek_id):
     trek = Trek.query.get_or_404(trek_id)
     return jsonify(trek_to_dict(trek))
 
+
 @api_bp.route("/users", methods=["GET"])
 @login_required
 @admin_required
 def api_list_users():
     return jsonify([user_to_dict(u) for u in User.query.all()])
+
 
 @api_bp.route("/bookings", methods=["GET"])
 @login_required
